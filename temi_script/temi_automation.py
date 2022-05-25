@@ -1,5 +1,6 @@
 
 import rclpy
+import requests
 from rclpy.node import Node
 
 from std_msgs.msg import String
@@ -30,6 +31,7 @@ neuronbot_out_of_lift = False
 location_1 = [2.341,-6.34]#[1.8966,-4.6678]#[2.344, -6.358] # temi Liftwait
 location_2 = [22.7658, -23.6183] # neuronbot out of the lift
 location_3 = [0.958, -8.54] #[-0.8925, -9.0441] # temi in lift
+location_reset = [-2.958, -7.54] # reset param point
 
 #point 4: 3.039,-8.46
 
@@ -93,7 +95,7 @@ class RMFStateSubscriber(Node):
         
     def fleet_state_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.name)
-        global neuronbot_out_of_lift,speech1_done,speech2_done,speech3_done,speech4_done,dist_tolerance,location_1,location_2,location_3,speech1,speech2,speech3,speech4, WAYPOINT_TOPIC,goto_waypoint_1,goto_waypoint_2
+        global location_reset,neuronbot_out_of_lift,speech1_done,speech2_done,speech3_done,speech4_done,dist_tolerance,location_1,location_2,location_3,speech1,speech2,speech3,speech4, WAYPOINT_TOPIC,goto_waypoint_1,goto_waypoint_2
         if (msg.name == "Temi"):
             for robot in msg.robots:
                 if (robot.name == "temi_rmf1"):
@@ -127,6 +129,12 @@ class RMFStateSubscriber(Node):
                             speech4_done = True
                             self.get_logger().info('Triggered speech 4 !!!!!!!!!!!!!!!')
                     '''
+                    elif (abs(cur_x - location_reset[0])< dist_tolerance and abs(cur_y - location_reset[1])< dist_tolerance ):
+                        speech1_done = False
+                        speech2_done = False
+                        speech3_done = False
+                        speech4_done = False
+                        self.get_logger().info('Reset !!!!!!!!!!!!!!!')
 
         elif (msg.name == "missy"):#neuronbot, missy
             for robot in msg.robots:
