@@ -22,6 +22,7 @@ SPEECH_TOPIC = "temi/00121195615/command/tts"
 
 
 dist_tolerance = 0.3
+reset_tolerance = 0.5
 speech1_done = False
 speech2_done = False
 speech3_done = False
@@ -31,7 +32,7 @@ neuronbot_out_of_lift = False
 location_1 = [2.341,-6.34]#[1.8966,-4.6678]#[2.344, -6.358] # temi Liftwait
 location_2 = [22.7658, -23.6183] # neuronbot out of the lift
 location_3 = [0.958, -8.54] #[-0.8925, -9.0441] # temi in lift
-location_reset = [-2.958, -7.54] # reset param point
+location_reset = [-9.929, -7.82] # reset param point
 
 #point 4: 3.039,-8.46
 
@@ -53,7 +54,7 @@ class RMFStateSubscriber(Node):
 
         super().__init__('temi_automation')
         self.node = rclpy.create_node('temi_automation_node')
-        self.get_logger().info('hello temi node is started..')
+        self.get_logger().info('hello temi node v1.0 is started..')
         
         self.current_lift_level = "B1"
         self.current_lift_door = 0 #close
@@ -95,7 +96,7 @@ class RMFStateSubscriber(Node):
         
     def fleet_state_callback(self, msg):
         self.get_logger().info('I heard: "%s"' % msg.name)
-        global location_reset,neuronbot_out_of_lift,speech1_done,speech2_done,speech3_done,speech4_done,dist_tolerance,location_1,location_2,location_3,speech1,speech2,speech3,speech4, WAYPOINT_TOPIC,goto_waypoint_1,goto_waypoint_2
+        global reset_tolerance,location_reset,neuronbot_out_of_lift,speech1_done,speech2_done,speech3_done,speech4_done,dist_tolerance,location_1,location_2,location_3,speech1,speech2,speech3,speech4, WAYPOINT_TOPIC,goto_waypoint_1,goto_waypoint_2
         if (msg.name == "Temi"):
             for robot in msg.robots:
                 if (robot.name == "temi_rmf1"):
@@ -120,6 +121,13 @@ class RMFStateSubscriber(Node):
                             self.client.publish(SPEECH_TOPIC,speech3)#publish
                             speech3_done = True
                             self.get_logger().info('Triggered speech 3 !!!!!!!!!!!!!!!')
+                    
+                    elif (abs(cur_x - location_reset[0])< reset_tolerance and abs(cur_y - location_reset[1])< reset_tolerance):
+                        speech1_done = False
+                        speech2_done = False
+                        speech3_done = False
+                        speech4_done = False
+                        self.get_logger().info('Reset !!!!!!!!!!!!!!!')
                     '''
                     elif (speech4_done == False and abs(cur_x - location_3[0])< dist_tolerance and abs(cur_y - location_3[1])< dist_tolerance and cur_lvl == "L2"):
                         if (self.current_lift_level == "L3" and self.current_lift_door == 2):
@@ -129,13 +137,8 @@ class RMFStateSubscriber(Node):
                             speech4_done = True
                             self.get_logger().info('Triggered speech 4 !!!!!!!!!!!!!!!')
                     '''
-                    elif (abs(cur_x - location_reset[0])< dist_tolerance and abs(cur_y - location_reset[1])< dist_tolerance ):
-                        speech1_done = False
-                        speech2_done = False
-                        speech3_done = False
-                        speech4_done = False
-                        self.get_logger().info('Reset !!!!!!!!!!!!!!!')
-
+                    
+                    
         elif (msg.name == "missy"):#neuronbot, missy
             for robot in msg.robots:
                 if (robot.name == "missybot"):#neuronbot2, missybot
