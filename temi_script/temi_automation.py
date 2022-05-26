@@ -1,6 +1,6 @@
 
 import rclpy
-import requests
+
 from rclpy.node import Node
 
 from std_msgs.msg import String
